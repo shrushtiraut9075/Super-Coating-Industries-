@@ -1,0 +1,6 @@
+{
+  "name": "Super Coating Industries - GST Billing System",
+  "description": "Professional GST Billing and Tax Invoice generation software for Super Coating Industries, Pune with Indian GST calculations, customer & product master, reports, and PDF print.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

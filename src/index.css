@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: #f8fafc;
+    color: #0f172a;
+  }
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 6mm;
+  }
+
+  html, body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide navigation, sidebars, buttons, action bars, toasts */
+  header,
+  aside,
+  nav,
+  button,
+  .print\:hidden,
+  div[role="status"],
+  div[aria-live="polite"] {
+    display: none !important;
+  }
+
+  /* Reset layout flex/grid constraints for printing */
+  main, #root, div[class*="min-h-screen"], div[class*="bg-slate-100"] {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border: none !important;
+    overflow: visible !important;
+  }
+
+  /* Make print sheet fill page perfectly with its own borders */
+  .print-area {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background-color: #ffffff !important;
+    min-height: auto !important;
+  }
+
+  /* Prevent page breaks inside table rows */
+  table, tr, td, th {
+    page-break-inside: avoid !important;
+  }
+}
+

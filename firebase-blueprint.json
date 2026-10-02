@@ -1,0 +1,107 @@
+{
+  "entities": {
+    "company": {
+      "title": "CompanyProfile",
+      "description": "Company profile and tax information for Super Coating Industries",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "gstin": { "type": "string" },
+        "mobile": { "type": "string" },
+        "address": { "type": "string" }
+      },
+      "required": ["name", "gstin"]
+    },
+    "settings": {
+      "title": "InvoiceSettings",
+      "description": "Invoice numbering and series settings",
+      "type": "object",
+      "properties": {
+        "prefix": { "type": "string" },
+        "nextNumber": { "type": "number" },
+        "financialYear": { "type": "string" }
+      },
+      "required": ["prefix", "nextNumber"]
+    },
+    "customer": {
+      "title": "Customer",
+      "description": "Customer entity with billing details and GSTIN",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "billingAddress": { "type": "string" },
+        "gstin": { "type": "string" },
+        "mobile": { "type": "string" }
+      },
+      "required": ["id", "name"]
+    },
+    "product": {
+      "title": "Product",
+      "description": "Product or job work item with rate and HSN",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "hsn": { "type": "string" },
+        "defaultRate": { "type": "number" },
+        "gstRate": { "type": "number" }
+      },
+      "required": ["id", "name"]
+    },
+    "invoice": {
+      "title": "Invoice",
+      "description": "Tax invoice document",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "invoiceNo": { "type": "string" },
+        "invoiceDate": { "type": "string" },
+        "customerName": { "type": "string" },
+        "grandTotal": { "type": "number" },
+        "paymentStatus": { "type": "string" }
+      },
+      "required": ["id", "invoiceNo"]
+    },
+    "receipt": {
+      "title": "PaymentReceipt",
+      "description": "Payment receipt document",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "receiptNo": { "type": "string" },
+        "receiptDate": { "type": "string" },
+        "customerName": { "type": "string" },
+        "amount": { "type": "number" },
+        "paymentMode": { "type": "string" }
+      },
+      "required": ["id", "receiptNo", "amount"]
+    }
+  },
+  "firestore": {
+    "/company/{companyId}": {
+      "schema": "company",
+      "description": "Company profile details"
+    },
+    "/settings/{settingsId}": {
+      "schema": "settings",
+      "description": "Invoice series settings"
+    },
+    "/customers/{customerId}": {
+      "schema": "customer",
+      "description": "Customer master collection"
+    },
+    "/products/{productId}": {
+      "schema": "product",
+      "description": "Product catalog collection"
+    },
+    "/invoices/{invoiceId}": {
+      "schema": "invoice",
+      "description": "Tax invoices collection"
+    },
+    "/receipts/{receiptId}": {
+      "schema": "receipt",
+      "description": "Payment receipts collection"
+    }
+  }
+}

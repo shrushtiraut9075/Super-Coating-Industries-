@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 480" width="100%" height="100%">
+  <defs>
+    <linearGradient id="sciBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1064C2" />
+      <stop offset="100%" stop-color="#0B478B" />
+    </linearGradient>
+    <linearGradient id="sciOrange" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF9D00" />
+      <stop offset="100%" stop-color="#F2600C" />
+    </linearGradient>
+  </defs>
+
+  <!-- Main Symbol (S + Spray Gun) -->
+  <g transform="translate(60, 20) scale(1.6)">
+    <!-- Top Arc in Cobalt Blue -->
+    <path
+      d="M 53 38 C 53 18 73 4 98 4 C 126 4 137 18 137 34 L 115 34 C 115 25 109 18 97 18 C 83 18 73 24 73 34 C 73 44 82 48 98 51 L 110 54 C 128 58 136 67 136 82 C 134 83 131 84 126 84 C 118 70 105 65 91 62 L 76 59 C 60 55 53 48 53 38 Z"
+      fill="url(#sciBlue)"
+    />
+    <!-- Upper Body Curve -->
+    <path
+      d="M 68 28 C 73 21 82 17 93 17 C 107 17 117 25 117 35 C 117 48 102 52 82 56 C 60 60 48 68 44 80 C 41 89 42 100 48 110 C 43 103 40 94 42 84 C 45 70 57 60 76 56 L 94 53 C 106 50 112 45 112 37 C 112 30 105 24 93 24 C 80 24 72 30 68 36 Z"
+      fill="url(#sciBlue)"
+    />
+    <!-- Bottom Swoosh in Orange -->
+    <path
+      d="M 45 82 C 41 97 45 113 58 125 C 71 137 92 140 113 136 C 130 133 143 120 142 103 C 142 90 132 82 119 79 L 105 77 C 88 74 72 73 59 78 C 52 80 48 83 45 86 C 49 84 57 82 66 82 C 80 82 96 86 110 89 C 125 93 130 100 130 107 C 129 119 116 127 101 127 C 83 127 67 121 59 111 C 53 103 51 93 54 83 Z"
+      fill="url(#sciOrange)"
+    />
+    <!-- Bottom Dark Blue Swoosh -->
+    <path
+      d="M 45 92 C 46 108 55 124 70 134 C 86 145 107 146 124 139 C 111 143 93 141 79 133 C 65 125 56 112 53 97 C 51 89 51 82 53 75 C 48 80 45 86 45 92 Z"
+      fill="url(#sciBlue)"
+    />
+
+    <!-- Spray Gun (Top paint cup, handle, trigger, nozzle) -->
+    <path d="M 142 36 L 161 40 L 155 64 L 142 61 Z" fill="#0B478B" stroke="#1064C2" stroke-width="1.5" stroke-linejoin="round" />
+    <path d="M 140 35 L 163 40 L 161 43 L 138 38 Z" fill="#1064C2" />
+    <path d="M 145 62 L 154 64 L 152 74 L 165 74 L 165 80 L 150 80 L 145 98 L 138 106 L 135 98 L 142 79 L 137 77 Z" fill="#0B478B" />
+    <path d="M 147 79 C 149 84 149 88 147 93" stroke="#1064C2" stroke-width="2" stroke-linecap="round" />
+    <rect x="165" y="74" width="8" height="6" rx="1" fill="#1064C2" />
+
+    <!-- Spray Mist Rays -->
+    <polygon points="176,74 204,63 203,66 176,75" fill="#F2600C" />
+    <polygon points="177,75 205,72 204,75 177,76" fill="#F2600C" />
+    <polygon points="178,77 205,81 204,84 178,78" fill="#F2600C" />
+    <polygon points="177,78 204,91 203,94 177,79" fill="#F2600C" />
+  </g>
+
+  <!-- Typography -->
+  <text x="250" y="350" text-anchor="middle" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="52" letter-spacing="-1">
+    <tspan fill="#0B478B">SUPER </tspan>
+    <tspan fill="#F2600C">COATING</tspan>
+  </text>
+
+  <!-- Horizontal Rules and INDUSTRIES -->
+  <g transform="translate(0, 385)">
+    <line x1="30" y1="0" x2="110" y2="0" stroke="#2B2F38" stroke-width="4" stroke-linecap="round" />
+    <text x="250" y="8" text-anchor="middle" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="28" letter-spacing="14" fill="#2B2F38">
+      INDUSTRIES
+    </text>
+    <line x1="390" y1="0" x2="470" y2="0" stroke="#2B2F38" stroke-width="4" stroke-linecap="round" />
+  </g>
+</svg>
