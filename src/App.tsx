@@ -362,6 +362,7 @@ function AppContent() {
               customers={customers}
               products={products}
               receipts={receipts}
+              company={company}
               onNavigate={(tab) => {
                 if (tab === 'new-invoice') setSelectedInvoice(null);
                 setActiveTab(tab);

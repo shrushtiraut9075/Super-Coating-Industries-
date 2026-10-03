@@ -1127,7 +1127,7 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
                   <th className="p-2.5 w-10 text-center">#</th>
                   <th className="p-2.5 min-w-[200px]">Description / Product</th>
                   <th className="p-2.5 w-24 text-center">HSN/SAC</th>
-                  <th className="p-2.5 w-20 text-center">Qty</th>
+                  <th className="p-2.5 w-28 sm:w-32 text-center text-xs">Qty (नग/प्रमाण)</th>
                   <th className="p-2.5 w-20 text-center">Unit</th>
                   <th className="p-2.5 w-24 text-right">Rate (₹)</th>
                   <th className="p-2.5 w-32 text-right">
@@ -1213,7 +1213,8 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
                         value={item.quantity}
                         onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
                         required
-                        className="w-full px-2 py-1.5 border border-slate-300 rounded font-mono text-center font-bold text-xs"
+                        placeholder="Qty"
+                        className="w-full min-w-[95px] px-3 py-2.5 border-2 border-blue-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-lg font-mono text-center font-black text-sm sm:text-base text-slate-900 bg-white shadow-xs"
                       />
                     </td>
 

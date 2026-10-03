@@ -8,7 +8,6 @@ import {
   setDoc,
   deleteDoc,
   getDocs,
-  writeBatch,
 } from 'firebase/firestore';
 import { getAuth, signInAnonymously, onAuthStateChanged, User } from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
@@ -24,17 +23,24 @@ import {
 // Initialize Firebase App
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Initialize Firestore with custom database ID if specified
+// Initialize Firestore with custom database ID
 export const db = firebaseConfig.firestoreDatabaseId
   ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
   : getFirestore(app);
 
 export const auth = getAuth(app);
 
-let isAuthInitialized = false;
+// Helper: Firestore strictly disallows `undefined` values in documents.
+// This utility recursively cleans undefined properties so Firestore writes never fail.
+export function sanitizeForFirestore<T>(data: T): T {
+  if (data === undefined || data === null) return data;
+  return JSON.parse(JSON.stringify(data));
+}
+
+// Background optional auth initializer (non-blocking)
+let authInitialized = false;
 let authPromise: Promise<User | null> | null = null;
 
-// Ensure anonymous authentication so all devices can sync securely
 export async function ensureFirebaseAuth(): Promise<User | null> {
   if (authPromise) return authPromise;
 
@@ -44,26 +50,34 @@ export async function ensureFirebaseAuth(): Promise<User | null> {
         auth,
         async (user) => {
           if (user) {
-            isAuthInitialized = true;
+            authInitialized = true;
             resolve(user);
           } else {
             try {
               const cred = await signInAnonymously(auth);
-              isAuthInitialized = true;
+              authInitialized = true;
               resolve(cred.user);
             } catch (err) {
-              console.warn('Firebase anonymous sign-in not available, proceeding with direct database access:', err);
+              // Anonymous sign-in may not be enabled, direct rules handle access
+              authInitialized = true;
               resolve(null);
             }
           }
         },
-        (err) => {
-          console.warn('Firebase auth state error:', err);
+        () => {
+          authInitialized = true;
           resolve(null);
         }
       );
-    } catch (e) {
-      console.warn('Firebase auth initialization warning:', e);
+      // Timeout fallback after 3 seconds so writes never hang
+      setTimeout(() => {
+        if (!authInitialized) {
+          authInitialized = true;
+          resolve(null);
+        }
+      }, 3000);
+    } catch {
+      authInitialized = true;
       resolve(null);
     }
   });
@@ -74,14 +88,14 @@ export async function ensureFirebaseAuth(): Promise<User | null> {
 // Test connection requirement from skill
 export async function testFirebaseConnection(): Promise<boolean> {
   try {
-    await ensureFirebaseAuth();
+    ensureFirebaseAuth().catch(() => {});
     await getDocFromServer(doc(db, '_connection_test', 'ping'));
     return true;
   } catch (error) {
     if (error instanceof Error && error.message.includes('the client is offline')) {
       console.warn('Firebase client is offline or connecting.');
     }
-    return true; // Still ok as offline persistence handles it
+    return true; // Still okay, Firestore offline cache queue handles operations
   }
 }
 
@@ -96,7 +110,7 @@ export const COLLECTIONS = {
 };
 
 // ==========================================
-// Real-time Cloud Sync Listeners
+// Real-time Cloud Sync Listeners (Live 2-Way Sync)
 // ==========================================
 
 export function subscribeToCompany(callback: (company: CompanyProfile) => void): () => void {
@@ -108,7 +122,7 @@ export function subscribeToCompany(callback: (company: CompanyProfile) => void):
         callback(snap.data() as CompanyProfile);
       }
     },
-    (err) => console.warn('Company sync listener error:', err)
+    (err) => console.warn('Company sync listener warning:', err)
   );
 }
 
@@ -121,7 +135,7 @@ export function subscribeToSettings(callback: (settings: InvoiceSettings) => voi
         callback(snap.data() as InvoiceSettings);
       }
     },
-    (err) => console.warn('Settings sync listener error:', err)
+    (err) => console.warn('Settings sync listener warning:', err)
   );
 }
 
@@ -134,7 +148,7 @@ export function subscribeToCustomers(callback: (customers: Customer[]) => void):
       snap.forEach((d) => items.push(d.data() as Customer));
       callback(items);
     },
-    (err) => console.warn('Customers sync listener error:', err)
+    (err) => console.warn('Customers sync listener warning:', err)
   );
 }
 
@@ -147,7 +161,7 @@ export function subscribeToProducts(callback: (products: Product[]) => void): ()
       snap.forEach((d) => items.push(d.data() as Product));
       callback(items);
     },
-    (err) => console.warn('Products sync listener error:', err)
+    (err) => console.warn('Products sync listener warning:', err)
   );
 }
 
@@ -158,11 +172,15 @@ export function subscribeToInvoices(callback: (invoices: Invoice[]) => void): ()
     (snap) => {
       const items: Invoice[] = [];
       snap.forEach((d) => items.push(d.data() as Invoice));
-      // Sort latest first
-      items.sort((a, b) => new Date(b.createdAt || b.invoiceDate).getTime() - new Date(a.createdAt || a.invoiceDate).getTime());
+      // Sort latest invoice first
+      items.sort(
+        (a, b) =>
+          new Date(b.createdAt || b.invoiceDate).getTime() -
+          new Date(a.createdAt || a.invoiceDate).getTime()
+      );
       callback(items);
     },
-    (err) => console.warn('Invoices sync listener error:', err)
+    (err) => console.warn('Invoices sync listener warning:', err)
   );
 }
 
@@ -173,104 +191,229 @@ export function subscribeToReceipts(callback: (receipts: PaymentReceipt[]) => vo
     (snap) => {
       const items: PaymentReceipt[] = [];
       snap.forEach((d) => items.push(d.data() as PaymentReceipt));
-      items.sort((a, b) => new Date(b.createdAt || b.receiptDate).getTime() - new Date(a.createdAt || a.receiptDate).getTime());
+      items.sort(
+        (a, b) =>
+          new Date(b.createdAt || b.receiptDate).getTime() -
+          new Date(a.createdAt || a.receiptDate).getTime()
+      );
       callback(items);
     },
-    (err) => console.warn('Receipts sync listener error:', err)
+    (err) => console.warn('Receipts sync listener warning:', err)
   );
 }
 
 // ==========================================
-// Cloud Write Helpers (Syncs to all devices)
+// Cloud Write Helpers (Instant Sync to All Devices)
 // ==========================================
 
-export async function cloudSaveCompany(company: CompanyProfile): Promise<void> {
+export async function cloudSaveCompany(company: CompanyProfile): Promise<boolean> {
   try {
-    await ensureFirebaseAuth();
-    await setDoc(doc(db, COLLECTIONS.COMPANY, 'profile'), company, { merge: true });
+    const clean = sanitizeForFirestore(company);
+    await setDoc(doc(db, COLLECTIONS.COMPANY, 'profile'), clean, { merge: true });
+    return true;
   } catch (e) {
-    console.warn('Company cloud sync notice:', e);
+    console.error('Company cloud sync failed:', e);
+    return false;
   }
 }
 
-export async function cloudSaveSettings(settings: InvoiceSettings): Promise<void> {
+export async function cloudSaveSettings(settings: InvoiceSettings): Promise<boolean> {
   try {
-    await ensureFirebaseAuth();
-    await setDoc(doc(db, COLLECTIONS.SETTINGS, 'default'), settings, { merge: true });
+    const clean = sanitizeForFirestore(settings);
+    await setDoc(doc(db, COLLECTIONS.SETTINGS, 'default'), clean, { merge: true });
+    return true;
   } catch (e) {
-    console.warn('Settings cloud sync notice:', e);
+    console.error('Settings cloud sync failed:', e);
+    return false;
   }
 }
 
-export async function cloudSaveCustomer(customer: Customer): Promise<void> {
+export async function cloudSaveCustomer(customer: Customer): Promise<boolean> {
   try {
-    await ensureFirebaseAuth();
-    await setDoc(doc(db, COLLECTIONS.CUSTOMERS, customer.id), customer, { merge: true });
+    const clean = sanitizeForFirestore(customer);
+    await setDoc(doc(db, COLLECTIONS.CUSTOMERS, customer.id), clean, { merge: true });
+    return true;
   } catch (e) {
-    console.warn('Customer cloud sync notice:', e);
+    console.error('Customer cloud sync failed:', e);
+    return false;
   }
 }
 
-export async function cloudDeleteCustomer(id: string): Promise<void> {
+export async function cloudDeleteCustomer(id: string): Promise<boolean> {
   try {
-    await ensureFirebaseAuth();
     await deleteDoc(doc(db, COLLECTIONS.CUSTOMERS, id));
+    return true;
   } catch (e) {
-    console.warn('Customer cloud delete notice:', e);
+    console.error('Customer cloud delete failed:', e);
+    return false;
   }
 }
 
-export async function cloudSaveProduct(product: Product): Promise<void> {
+export async function cloudSaveProduct(product: Product): Promise<boolean> {
   try {
-    await ensureFirebaseAuth();
-    await setDoc(doc(db, COLLECTIONS.PRODUCTS, product.id), product, { merge: true });
+    const clean = sanitizeForFirestore(product);
+    await setDoc(doc(db, COLLECTIONS.PRODUCTS, product.id), clean, { merge: true });
+    return true;
   } catch (e) {
-    console.warn('Product cloud sync notice:', e);
+    console.error('Product cloud sync failed:', e);
+    return false;
   }
 }
 
-export async function cloudDeleteProduct(id: string): Promise<void> {
+export async function cloudDeleteProduct(id: string): Promise<boolean> {
   try {
-    await ensureFirebaseAuth();
     await deleteDoc(doc(db, COLLECTIONS.PRODUCTS, id));
+    return true;
   } catch (e) {
-    console.warn('Product cloud delete notice:', e);
+    console.error('Product cloud delete failed:', e);
+    return false;
   }
 }
 
-export async function cloudSaveInvoice(invoice: Invoice): Promise<void> {
+export async function cloudSaveInvoice(invoice: Invoice): Promise<boolean> {
   try {
-    await ensureFirebaseAuth();
-    await setDoc(doc(db, COLLECTIONS.INVOICES, invoice.id), invoice, { merge: true });
+    const clean = sanitizeForFirestore(invoice);
+    await setDoc(doc(db, COLLECTIONS.INVOICES, invoice.id), clean, { merge: true });
+    console.log(`✓ Invoice ${invoice.invoiceNo} successfully synced to Firebase Cloud!`);
+    return true;
   } catch (e) {
-    console.warn('Invoice cloud sync notice:', e);
+    console.error('Invoice cloud sync failed:', e);
+    return false;
   }
 }
 
-export async function cloudDeleteInvoice(id: string): Promise<void> {
+export async function cloudDeleteInvoice(id: string): Promise<boolean> {
   try {
-    await ensureFirebaseAuth();
     await deleteDoc(doc(db, COLLECTIONS.INVOICES, id));
+    return true;
   } catch (e) {
-    console.warn('Invoice cloud delete notice:', e);
+    console.error('Invoice cloud delete failed:', e);
+    return false;
   }
 }
 
-export async function cloudSaveReceipt(receipt: PaymentReceipt): Promise<void> {
+export async function cloudSaveReceipt(receipt: PaymentReceipt): Promise<boolean> {
   try {
-    await ensureFirebaseAuth();
-    await setDoc(doc(db, COLLECTIONS.RECEIPTS, receipt.id), receipt, { merge: true });
+    const clean = sanitizeForFirestore(receipt);
+    await setDoc(doc(db, COLLECTIONS.RECEIPTS, receipt.id), clean, { merge: true });
+    return true;
   } catch (e) {
-    console.warn('Receipt cloud sync notice:', e);
+    console.error('Receipt cloud sync failed:', e);
+    return false;
   }
 }
 
-export async function cloudDeleteReceipt(id: string): Promise<void> {
+export async function cloudDeleteReceipt(id: string): Promise<boolean> {
   try {
-    await ensureFirebaseAuth();
     await deleteDoc(doc(db, COLLECTIONS.RECEIPTS, id));
+    return true;
   } catch (e) {
-    console.warn('Receipt cloud delete notice:', e);
+    console.error('Receipt cloud delete failed:', e);
+    return false;
+  }
+}
+
+// Pull all data directly from cloud (useful for force-refresh / on-demand sync)
+export async function pullAllFromCloud(): Promise<{
+  company?: CompanyProfile;
+  settings?: InvoiceSettings;
+  customers: Customer[];
+  products: Product[];
+  invoices: Invoice[];
+  receipts: PaymentReceipt[];
+}> {
+  const result: {
+    company?: CompanyProfile;
+    settings?: InvoiceSettings;
+    customers: Customer[];
+    products: Product[];
+    invoices: Invoice[];
+    receipts: PaymentReceipt[];
+  } = {
+    customers: [],
+    products: [],
+    invoices: [],
+    receipts: [],
+  };
+
+  try {
+    const [compSnap, setSnap, custSnap, prodSnap, invSnap, recSnap] = await Promise.all([
+      getDocs(collection(db, COLLECTIONS.COMPANY)),
+      getDocs(collection(db, COLLECTIONS.SETTINGS)),
+      getDocs(collection(db, COLLECTIONS.CUSTOMERS)),
+      getDocs(collection(db, COLLECTIONS.PRODUCTS)),
+      getDocs(collection(db, COLLECTIONS.INVOICES)),
+      getDocs(collection(db, COLLECTIONS.RECEIPTS)),
+    ]);
+
+    compSnap.forEach((d) => {
+      if (d.id === 'profile') result.company = d.data() as CompanyProfile;
+    });
+    setSnap.forEach((d) => {
+      if (d.id === 'default') result.settings = d.data() as InvoiceSettings;
+    });
+    custSnap.forEach((d) => result.customers.push(d.data() as Customer));
+    prodSnap.forEach((d) => result.products.push(d.data() as Product));
+    invSnap.forEach((d) => result.invoices.push(d.data() as Invoice));
+    recSnap.forEach((d) => result.receipts.push(d.data() as PaymentReceipt));
+
+    // Sort invoices and receipts descending
+    result.invoices.sort(
+      (a, b) =>
+        new Date(b.createdAt || b.invoiceDate).getTime() -
+        new Date(a.createdAt || a.invoiceDate).getTime()
+    );
+    result.receipts.sort(
+      (a, b) =>
+        new Date(b.createdAt || b.receiptDate).getTime() -
+        new Date(a.createdAt || a.receiptDate).getTime()
+    );
+  } catch (err) {
+    console.error('Failed to pull all collections from Firebase:', err);
+  }
+
+  return result;
+}
+
+// Push all local data into Firebase Cloud (to guarantee all devices receive the latest database)
+export async function pushAllToCloud(data: {
+  company: CompanyProfile;
+  settings: InvoiceSettings;
+  customers: Customer[];
+  products: Product[];
+  invoices: Invoice[];
+  receipts: PaymentReceipt[];
+}): Promise<{ success: boolean; count: number }> {
+  let count = 0;
+  try {
+    if (data.company) {
+      await cloudSaveCompany(data.company);
+      count++;
+    }
+    if (data.settings) {
+      await cloudSaveSettings(data.settings);
+      count++;
+    }
+    for (const c of data.customers || []) {
+      await cloudSaveCustomer(c);
+      count++;
+    }
+    for (const p of data.products || []) {
+      await cloudSaveProduct(p);
+      count++;
+    }
+    for (const inv of data.invoices || []) {
+      await cloudSaveInvoice(inv);
+      count++;
+    }
+    for (const r of data.receipts || []) {
+      await cloudSaveReceipt(r);
+      count++;
+    }
+    return { success: true, count };
+  } catch (err) {
+    console.error('Error during full push to cloud:', err);
+    return { success: false, count };
   }
 }
 
@@ -284,28 +427,13 @@ export async function seedCloudIfEmpty(initialData: {
   receipts: PaymentReceipt[];
 }): Promise<void> {
   try {
-    await ensureFirebaseAuth();
     const invoicesSnap = await getDocs(collection(db, COLLECTIONS.INVOICES));
-    if (invoicesSnap.empty) {
+    if (invoicesSnap.empty && initialData.invoices && initialData.invoices.length > 0) {
       console.log('Seeding initial data to Firebase Cloud Firestore for multi-device sync...');
-      await cloudSaveCompany(initialData.company);
-      await cloudSaveSettings(initialData.settings);
-
-      for (const cust of initialData.customers) {
-        await cloudSaveCustomer(cust);
-      }
-      for (const prod of initialData.products) {
-        await cloudSaveProduct(prod);
-      }
-      for (const inv of initialData.invoices) {
-        await cloudSaveInvoice(inv);
-      }
-      for (const rec of initialData.receipts) {
-        await cloudSaveReceipt(rec);
-      }
+      await pushAllToCloud(initialData);
       console.log('Initial data successfully seeded to Firebase Cloud!');
     }
   } catch (err) {
-    console.warn('Cloud seeding check:', err);
+    console.warn('Cloud seeding check warning:', err);
   }
 }

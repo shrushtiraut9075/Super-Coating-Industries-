@@ -905,15 +905,31 @@ export function syncLocalProducts(products: Product[]): void {
 }
 
 export function syncLocalInvoices(invoices: Invoice[]): void {
-  if (invoices && Array.isArray(invoices) && invoices.length > 0) {
+  if (invoices && Array.isArray(invoices)) {
     setStoredItem(STORAGE_KEYS.INVOICES, invoices);
   }
 }
 
 export function syncLocalReceipts(receipts: PaymentReceipt[]): void {
-  if (receipts && Array.isArray(receipts) && receipts.length > 0) {
+  if (receipts && Array.isArray(receipts)) {
     setStoredItem(STORAGE_KEYS.RECEIPTS, receipts);
   }
+}
+
+export function syncAllFromCloudObject(data: {
+  company?: CompanyProfile;
+  settings?: InvoiceSettings;
+  customers?: Customer[];
+  products?: Product[];
+  invoices?: Invoice[];
+  receipts?: PaymentReceipt[];
+}): void {
+  if (data.company && data.company.name) syncLocalCompany(data.company);
+  if (data.settings && data.settings.prefix) syncLocalSettings(data.settings);
+  if (data.customers && Array.isArray(data.customers)) syncLocalCustomers(data.customers);
+  if (data.products && Array.isArray(data.products)) syncLocalProducts(data.products);
+  if (data.invoices && Array.isArray(data.invoices)) syncLocalInvoices(data.invoices);
+  if (data.receipts && Array.isArray(data.receipts)) syncLocalReceipts(data.receipts);
 }
 
 // ==========================================

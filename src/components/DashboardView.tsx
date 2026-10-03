@@ -15,7 +15,7 @@ import {
   CheckCircle2,
   ReceiptText,
 } from 'lucide-react';
-import { Invoice, Customer, Product, ActiveTab, PaymentReceipt } from '../types';
+import { Invoice, Customer, Product, ActiveTab, PaymentReceipt, CompanyProfile } from '../types';
 import { formatIndianCurrency, formatDate } from '../utils/formatters';
 import { Logo } from './Logo';
 
@@ -24,6 +24,7 @@ interface DashboardViewProps {
   customers: Customer[];
   products: Product[];
   receipts?: PaymentReceipt[];
+  company?: CompanyProfile;
   onNavigate: (tab: ActiveTab) => void;
   onViewInvoice: (invoice: Invoice) => void;
   onCreateReceipt?: () => void;
@@ -34,6 +35,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   customers,
   products,
   receipts = [],
+  company,
   onNavigate,
   onViewInvoice,
   onCreateReceipt,
@@ -98,8 +100,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 rounded-2xl p-6 text-white shadow-md relative overflow-hidden">
         <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-white p-1.5 shadow-xl flex items-center justify-center shrink-0 ring-4 ring-white/10">
-              <Logo variant="icon" className="w-full h-full" />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white p-2 shadow-xl flex items-center justify-center shrink-0 ring-4 ring-white/10 overflow-hidden">
+              <Logo variant="icon" className="w-full h-full object-contain" logoUrl={company?.logoUrl} />
             </div>
             <div className="space-y-1">
               <span className="text-xs font-semibold uppercase tracking-wider text-blue-400 bg-blue-950/80 px-2.5 py-0.5 rounded-full border border-blue-800/50">
@@ -111,7 +113,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span className="text-slate-300 font-bold text-sm sm:text-base ml-1">INDUSTRIES</span>
               </div>
               <p className="text-xs text-slate-300 max-w-xl">
-                Chimbali, Tal-Khed, Dist-Pune | GSTIN: 27DBAPS9015K1ZA | State Code: 27
+                {company?.address || 'Chimbali, Tal-Khed, Dist-Pune'} | GSTIN: {company?.gstin || '27DBAPS9015K1ZA'} | State Code: {company?.stateCode || '27'}
               </p>
             </div>
           </div>
