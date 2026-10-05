@@ -1111,55 +1111,66 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-[1180px] w-full text-xs text-left border border-slate-200 rounded-lg">
+          {/* Mobile swipe indicator */}
+          <div className="md:hidden flex items-center justify-between text-xs text-blue-900 bg-blue-50 px-3.5 py-2 rounded-xl border border-blue-200/80 mb-2">
+            <span className="font-bold flex items-center gap-1.5">
+              <span>👉</span>
+              <span>उजवीकडे स्क्रोल करा:</span>
+            </span>
+            <span className="font-semibold text-blue-700">
+              Unit, Rate (दर), Taxable रक्कम
+            </span>
+          </div>
+
+          <div className="overflow-x-auto pb-3 scrollbar-thin">
+            <table className="w-full text-xs text-left border border-slate-200 rounded-lg" style={{ minWidth: '1280px' }}>
               <thead className="bg-slate-100 text-slate-700 font-bold uppercase text-[10px]">
                 <tr>
-                  <th className="p-2.5 w-10 text-center">#</th>
-                  <th className="p-2.5 min-w-[220px]">Description / Product</th>
-                  <th className="p-2.5 w-24 text-center">HSN/SAC</th>
-                  <th className="p-2.5 w-28 sm:w-32 text-center text-xs">Qty (नग/प्रमाण)</th>
-                  <th className="p-2.5 min-w-[95px] w-28 text-center text-xs">Unit (एकक)</th>
-                  <th className="p-2.5 min-w-[130px] w-36 text-right text-xs">Rate (दर ₹)</th>
-                  <th className="p-2.5 min-w-[140px] w-40 text-right text-xs">
+                  <th className="p-2.5 text-center" style={{ minWidth: '40px', width: '45px' }}>#</th>
+                  <th className="p-2.5" style={{ minWidth: '240px', width: '260px' }}>Description / Product</th>
+                  <th className="p-2.5 text-center" style={{ minWidth: '100px', width: '110px' }}>HSN/SAC</th>
+                  <th className="p-2.5 text-center text-xs" style={{ minWidth: '115px', width: '125px' }}>Qty (नग/प्रमाण)</th>
+                  <th className="p-2.5 text-center text-xs" style={{ minWidth: '110px', width: '115px' }}>Unit (एकक)</th>
+                  <th className="p-2.5 text-right text-xs" style={{ minWidth: '150px', width: '160px' }}>Rate (दर ₹)</th>
+                  <th className="p-2.5 text-right text-xs" style={{ minWidth: '165px', width: '175px' }}>
                     <div>Taxable (करपात्र ₹)</div>
                     <div className="text-[8.5px] font-normal text-slate-600">GST: YES / NO</div>
                   </th>
 
                   {!isGstApplicable ? (
-                    <th className="p-2.5 w-40 text-center text-amber-800 bg-amber-50">
+                    <th className="p-2.5 text-center text-amber-800 bg-amber-50" style={{ minWidth: '160px', width: '170px' }}>
                       <div>GST (Non-Taxable)</div>
                       <div className="text-[8.5px] font-normal text-amber-700">0% Tax / Bill of Supply</div>
                     </th>
                   ) : isIntraState ? (
                     <>
-                      <th className="p-2.5 w-36 text-right">
+                      <th className="p-2.5 text-right" style={{ minWidth: '150px', width: '160px' }}>
                         <div>CGST %</div>
                         <div className="text-[8.5px] font-bold text-blue-700">6%, 9%, 12%, 18%</div>
                       </th>
-                      <th className="p-2.5 w-36 text-right">
+                      <th className="p-2.5 text-right" style={{ minWidth: '150px', width: '160px' }}>
                         <div>SGST %</div>
                         <div className="text-[8.5px] font-bold text-blue-700">6%, 9%, 12%, 18%</div>
                       </th>
                     </>
                   ) : (
-                    <th className="p-2.5 w-40 text-right">
+                    <th className="p-2.5 text-right" style={{ minWidth: '160px', width: '170px' }}>
                       <div>IGST %</div>
                       <div className="text-[8.5px] font-bold text-blue-700">12%, 18%, 24%, 36%</div>
                     </th>
                   )}
 
-                  <th className="p-2.5 w-28 text-right">Total (₹)</th>
-                  <th className="p-2.5 w-10 text-center"></th>
+                  <th className="p-2.5 text-right text-xs" style={{ minWidth: '140px', width: '150px' }}>Total (₹)</th>
+                  <th className="p-2.5 text-center" style={{ minWidth: '45px', width: '50px' }}></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {items.map((item, index) => (
                   <tr key={item.id} className="hover:bg-slate-50/70">
-                    <td className="p-2.5 text-center font-bold text-slate-500">{index + 1}</td>
+                    <td className="p-2.5 text-center font-bold text-slate-500" style={{ minWidth: '40px', width: '45px' }}>{index + 1}</td>
                     
                     {/* Description & Product Picker */}
-                    <td className="p-2.5 space-y-1.5 min-w-[220px]">
+                    <td className="p-2.5 space-y-1.5" style={{ minWidth: '240px', width: '260px' }}>
                       {products.length > 0 && (
                         <div className="flex items-center gap-1">
                           <select
@@ -1197,7 +1208,7 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
                     </td>
 
                     {/* HSN */}
-                    <td className="p-2.5">
+                    <td className="p-2.5" style={{ minWidth: '100px', width: '110px' }}>
                       <input
                         type="text"
                         value={item.hsn}
@@ -1208,7 +1219,7 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
                     </td>
 
                     {/* Qty */}
-                    <td className="p-2.5">
+                    <td className="p-2.5" style={{ minWidth: '115px', width: '125px' }}>
                       <input
                         type="number"
                         step="any"
@@ -1217,16 +1228,18 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
                         onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
                         required
                         placeholder="Qty"
-                        className="w-full min-w-[95px] px-3 py-2.5 border-2 border-blue-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-lg font-mono text-center font-black text-sm sm:text-base text-slate-900 bg-white shadow-xs"
+                        style={{ minWidth: '100px', width: '100%' }}
+                        className="w-full min-w-[100px] px-3 py-2.5 border-2 border-blue-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-lg font-mono text-center font-black text-base text-slate-900 bg-white shadow-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
                     </td>
 
                     {/* Unit */}
-                    <td className="p-2.5">
+                    <td className="p-2.5 text-center" style={{ minWidth: '110px', width: '115px' }}>
                       <select
                         value={item.unit}
                         onChange={(e) => handleItemChange(index, 'unit', e.target.value)}
-                        className="w-full min-w-[85px] px-2.5 py-2.5 border-2 border-slate-300 focus:border-blue-500 rounded-lg text-center font-bold text-xs bg-white shadow-xs"
+                        style={{ minWidth: '95px', width: '100%' }}
+                        className="w-full min-w-[95px] px-2.5 py-2.5 border-2 border-slate-300 focus:border-blue-500 rounded-lg text-center font-bold text-xs bg-white shadow-xs"
                       >
                         {COMMON_UNITS.map((u) => (
                           <option key={u} value={u}>
@@ -1237,22 +1250,23 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
                     </td>
 
                     {/* Rate */}
-                    <td className="p-2.5">
+                    <td className="p-2.5 text-right" style={{ minWidth: '150px', width: '160px' }}>
                       <input
                         type="number"
                         step="any"
                         min="0"
-                        value={item.rate}
-                        onChange={(e) => handleItemChange(index, 'rate', e.target.value)}
+                        value={item.rate === 0 && !item.description ? '' : item.rate}
+                        onChange={(e) => handleItemChange(index, 'rate', e.target.value === '' ? 0 : e.target.value)}
                         required
                         placeholder="0.00"
-                        className="w-full min-w-[115px] px-3 py-2.5 border-2 border-emerald-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 rounded-lg font-mono text-right font-black text-sm sm:text-base text-slate-900 bg-white shadow-xs"
+                        style={{ minWidth: '135px', width: '100%' }}
+                        className="w-full min-w-[135px] px-3 py-2.5 border-2 border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 rounded-lg font-mono text-right font-black text-base sm:text-lg text-slate-900 bg-white shadow-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
                     </td>
 
                     {/* Taxable Amount + Option for Customer GST YES / NO */}
-                    <td className="p-2.5 text-right font-mono space-y-1 min-w-[140px]">
-                      <div className="font-black text-slate-900 text-sm whitespace-nowrap">
+                    <td className="p-2.5 text-right font-mono space-y-1" style={{ minWidth: '165px', width: '175px' }}>
+                      <div className="font-black text-slate-900 text-sm sm:text-base whitespace-nowrap">
                         ₹{formatIndianCurrency(item.taxableAmount, false)}
                       </div>
                       <div className="flex items-center justify-end gap-1">
@@ -1285,7 +1299,7 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
 
                     {/* Tax Amounts */}
                     {(!isGstApplicable || item.isTaxable === false) ? (
-                      <td className="p-2.5 text-center bg-amber-50/50" colSpan={isIntraState ? 2 : 1}>
+                      <td className="p-2.5 text-center bg-amber-50/50" colSpan={isIntraState ? 2 : 1} style={{ minWidth: '160px' }}>
                         <div className="inline-flex flex-col items-center">
                           <span className="text-[10.5px] font-bold text-amber-800 bg-amber-100 px-2.5 py-1 rounded">
                             0% (Non-GST / Exempt)
@@ -1296,7 +1310,7 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
                     ) : isIntraState ? (
                       <>
                         {/* CGST Select & 6%, 9%, 12%, 18% Quick Buttons */}
-                        <td className="p-2.5 text-right space-y-1.5 min-w-[135px]">
+                        <td className="p-2.5 text-right space-y-1.5" style={{ minWidth: '150px', width: '160px' }}>
                           <div className="flex items-center justify-end gap-1">
                             {PRIMARY_CGST_RATES.map((rate) => (
                               <button
@@ -1335,7 +1349,7 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
                         </td>
 
                         {/* SGST Select & 6%, 9%, 12%, 18% Quick Buttons */}
-                        <td className="p-2.5 text-right space-y-1.5 min-w-[135px]">
+                        <td className="p-2.5 text-right space-y-1.5" style={{ minWidth: '150px', width: '160px' }}>
                           <div className="flex items-center justify-end gap-1">
                             {PRIMARY_CGST_RATES.map((rate) => (
                               <button
@@ -1375,7 +1389,7 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
                       </>
                     ) : (
                       /* IGST Select & 12%, 18%, 24%, 36% Quick Buttons */
-                      <td className="p-2.5 text-right space-y-1.5 min-w-[145px]">
+                      <td className="p-2.5 text-right space-y-1.5" style={{ minWidth: '160px', width: '170px' }}>
                         <div className="flex items-center justify-end gap-1">
                           {PRIMARY_IGST_RATES.map((rate) => (
                             <button
@@ -1415,12 +1429,12 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
                     )}
 
                     {/* Line Total */}
-                    <td className="p-2.5 text-right font-mono font-black text-slate-950 text-sm whitespace-nowrap min-w-[130px]">
+                    <td className="p-2.5 text-right font-mono font-black text-slate-950 text-sm sm:text-base whitespace-nowrap" style={{ minWidth: '140px', width: '150px' }}>
                       ₹{formatIndianCurrency(item.totalAmount, false)}
                     </td>
 
                     {/* Remove Action */}
-                    <td className="p-2.5 text-center">
+                    <td className="p-2.5 text-center" style={{ minWidth: '45px', width: '50px' }}>
                       <button
                         type="button"
                         onClick={() => handleRemoveItem(index)}

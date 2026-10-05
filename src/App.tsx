@@ -402,6 +402,7 @@ function AppContent() {
 
           {activeTab === 'new-invoice' && (
             <InvoiceFormView
+              key={`new-invoice-${Date.now()}`}
               company={company}
               customers={customers}
               products={products}
@@ -414,6 +415,7 @@ function AppContent() {
 
           {activeTab === 'edit-invoice' && selectedInvoice && (
             <InvoiceFormView
+              key={`edit-invoice-${selectedInvoice.id}`}
               initialInvoice={selectedInvoice}
               company={company}
               customers={customers}
