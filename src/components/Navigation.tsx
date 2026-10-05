@@ -34,6 +34,7 @@ interface NavigationProps {
   currentUser: AppUser | null;
   onOpenLogin: () => void;
   onOpenSync: () => void;
+  onLogout?: () => void;
 }
 
 export const Navigation: React.FC<NavigationProps> = ({
@@ -46,6 +47,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   currentUser,
   onOpenLogin,
   onOpenSync,
+  onLogout,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -101,18 +103,27 @@ export const Navigation: React.FC<NavigationProps> = ({
           </div>
 
           {/* User Role Badge in Mobile Header */}
-          <button
-            onClick={onOpenLogin}
-            className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 ${
-              currentUser?.role === 'admin'
-                ? 'bg-purple-600/30 text-purple-300 border border-purple-500/40'
-                : 'bg-amber-600/30 text-amber-300 border border-amber-500/40'
-            }`}
-            title="Click to Switch User"
-          >
-            <Shield className="w-3 h-3" />
-            <span>{currentUser?.role || 'User'}</span>
-          </button>
+          <div className="flex items-center gap-1">
+            <div
+              className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 ${
+                currentUser?.role === 'admin'
+                  ? 'bg-purple-600/30 text-purple-300 border border-purple-500/40'
+                  : 'bg-amber-600/30 text-amber-300 border border-amber-500/40'
+              }`}
+            >
+              <Shield className="w-3 h-3 text-purple-400" />
+              <span>Admin</span>
+            </div>
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="p-1.5 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white rounded-lg text-xs font-bold transition-all border border-rose-500/40"
+                title="लॉगआउट करा (Logout & Lock System)"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
 
           <button
             onClick={onOpenSync}
@@ -200,34 +211,32 @@ export const Navigation: React.FC<NavigationProps> = ({
             <div className="pt-3 border-t border-slate-800 space-y-2">
               <div className="bg-slate-800/80 rounded-xl p-2.5 border border-slate-700/60 flex items-center justify-between">
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-[10px] shrink-0 ${
-                    currentUser?.role === 'admin'
-                      ? 'bg-purple-600/30 text-purple-300 border border-purple-500/50'
-                      : 'bg-amber-600/30 text-amber-300 border border-amber-500/50'
-                  }`}>
-                    {currentUser?.role === 'admin' ? 'AD' : 'OP'}
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-[10px] shrink-0 bg-purple-600/30 text-purple-300 border border-purple-500/50">
+                    AD
                   </div>
                   <div className="min-w-0">
                     <span className="text-xs font-bold text-white block truncate">
-                      {currentUser?.displayName || currentUser?.username}
+                      {currentUser?.displayName || currentUser?.username || 'Admin'}
                     </span>
-                    <span className={`text-[9px] font-bold uppercase tracking-wider block ${
-                      currentUser?.role === 'admin' ? 'text-purple-300' : 'text-amber-300'
-                    }`}>
-                      {currentUser?.role === 'admin' ? 'Admin (Full)' : 'Operator (Billing)'}
+                    <span className="text-[9px] font-bold uppercase tracking-wider block text-purple-300">
+                      Admin (Full)
                     </span>
                   </div>
                 </div>
 
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onOpenLogin();
-                  }}
-                  className="text-[10px] font-bold text-slate-300 bg-slate-700 px-2 py-1 rounded"
-                >
-                  बदला
-                </button>
+                {onLogout && (
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      onLogout();
+                    }}
+                    className="text-[10px] font-bold text-rose-300 hover:text-white bg-rose-600/20 hover:bg-rose-600 border border-rose-500/40 px-2 py-1 rounded flex items-center gap-1"
+                    title="लॉगआउट करा"
+                  >
+                    <LogOut className="w-3 h-3" />
+                    <span>लॉगआउट</span>
+                  </button>
+                )}
               </div>
 
               <button
@@ -340,34 +349,31 @@ export const Navigation: React.FC<NavigationProps> = ({
         {/* User Session & Device Sync Bottom Cards */}
         <div className="p-3.5 border-t border-slate-800 space-y-2">
           {/* User Role Card */}
-          <div className="bg-slate-800/80 rounded-xl p-3 border border-slate-700/60 flex items-center justify-between">
+          <div className="bg-slate-800/80 rounded-xl p-3 border border-slate-700/60 space-y-2.5">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs shrink-0 ${
-                currentUser?.role === 'admin'
-                  ? 'bg-purple-600/30 text-purple-300 border border-purple-500/50'
-                  : 'bg-amber-600/30 text-amber-300 border border-amber-500/50'
-              }`}>
-                {currentUser?.role === 'admin' ? 'AD' : 'OP'}
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs shrink-0 bg-purple-600/30 text-purple-300 border border-purple-500/50">
+                AD
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <span className="text-xs font-bold text-white block truncate">
-                  {currentUser?.displayName || currentUser?.username || 'User'}
+                  {currentUser?.displayName || currentUser?.username || 'Admin'}
                 </span>
-                <span className={`text-[9.5px] font-bold uppercase tracking-wider block ${
-                  currentUser?.role === 'admin' ? 'text-purple-300' : 'text-amber-300'
-                }`}>
-                  {currentUser?.role === 'admin' ? 'Admin (Full Access)' : 'Operator (Billing)'}
+                <span className="text-[9.5px] font-bold uppercase tracking-wider block text-purple-300">
+                  Admin (Full Access)
                 </span>
               </div>
             </div>
 
-            <button
-              onClick={onOpenLogin}
-              className="text-[10px] font-bold text-slate-300 hover:text-white bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded-md transition-colors shrink-0 ml-1"
-              title="Switch user account"
-            >
-              बदला
-            </button>
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-rose-600/20 hover:bg-rose-600 text-rose-200 hover:text-white text-xs font-bold rounded-xl border border-rose-500/30 transition-all cursor-pointer shadow-xs"
+                title="लॉगआउट करा व सिस्टम लॉक करा"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>लॉगआउट करा (Logout)</span>
+              </button>
+            )}
           </div>
 
           {/* Sync Button */}

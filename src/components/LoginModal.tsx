@@ -50,22 +50,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     }
 
     const user = authenticateUser(username, password);
-    if (user) {
-      onLoginSuccess(user);
-    } else {
+    if (!user) {
       setError('अवैध युझरनेम किंवा पासवर्ड! (Invalid credentials)');
+      return;
     }
-  };
-
-  const handleQuickLogin = (role: 'admin' | 'operator') => {
-    const users = getUsers();
-    const targetUser = users.find((u) => u.role === role);
-    if (targetUser) {
-      const authenticated = authenticateUser(targetUser.username, targetUser.passwordHash);
-      if (authenticated) {
-        onLoginSuccess(authenticated);
-      }
+    if (user.role !== 'admin') {
+      setError('प्रवेश नाकारला! केवळ मुख्य ॲडमिनलाच लॉगिन करण्याची परवानगी आहे.');
+      return;
     }
+    onLoginSuccess(user);
   };
 
   return (
@@ -146,37 +139,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             <span>लॉगिन करा (Sign In)</span>
           </button>
 
-          {/* Quick Demo Switchers */}
+          {/* Admin Credentials Reference */}
           <div className="pt-2 border-t border-slate-200">
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center mb-2.5">
-              झटपट चाचणी लॉगिन (Quick Access):
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('admin')}
-                className="p-2.5 bg-slate-50 hover:bg-purple-50 hover:border-purple-300 border border-slate-200 rounded-xl text-left transition-all group"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-purple-700 uppercase">Admin</span>
-                  <Shield className="w-3.5 h-3.5 text-purple-600" />
-                </div>
-                <p className="text-[10px] text-slate-500 mt-0.5">पूर्ण अधिकार (Full Access)</p>
-                <p className="text-[9.5px] font-mono text-slate-400 mt-1">admin / admin123</p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('operator')}
-                className="p-2.5 bg-slate-50 hover:bg-amber-50 hover:border-amber-300 border border-slate-200 rounded-xl text-left transition-all group"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-amber-700 uppercase">Operator</span>
-                  <UserCheck className="w-3.5 h-3.5 text-amber-600" />
-                </div>
-                <p className="text-[10px] text-slate-500 mt-0.5">बिलिंग (No Profile Edit)</p>
-                <p className="text-[9.5px] font-mono text-slate-400 mt-1">operator / operator123</p>
-              </button>
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-1">
+              <span className="text-[11px] font-bold text-slate-700 block">
+                अधिकृत ॲडमिन लॉगिन (Admin Credentials):
+              </span>
+              <span className="font-mono font-bold text-xs text-blue-900 bg-white px-2.5 py-0.5 rounded border border-slate-200 inline-block">
+                admin / admin123
+              </span>
             </div>
           </div>
         </form>

@@ -253,8 +253,8 @@ export const DEFAULT_CUSTOMERS: Customer[] = [
 export const DEFAULT_PRODUCTS: Product[] = [
   {
     id: 'prod-ms-frame-1',
-    name: 'BASE FRAME / MS FRAME FOR POWDER COATING RAL 7035',
-    description: 'Base Frame / Mild Steel Frame with Powder Coating RAL 7035 Light Grey finish',
+    name: 'BASE FRAME FOR POWDER COATING RAL 7035',
+    description: 'Base Frame Mild Steel with Powder Coating RAL 7035 Light Grey finish',
     hsn: '998898',
     defaultUnit: 'KGS',
     defaultRate: 24.0,
@@ -991,13 +991,16 @@ export function authenticateUser(username: string, password: string): AppUser | 
 export function getCurrentSession(): AppUser | null {
   const session = getStoredItem<AppUser | null>(STORAGE_KEYS.SESSION, null);
   if (!session) {
-    // Default to admin on first run for seamless experience
-    return DEFAULT_USERS[0];
+    // Compulsory Login: Require username and password, no auto-login
+    return null;
   }
-  // Verify user still exists in DB
+  // Verify user still exists in DB and is Admin (Security restricted to Admin only)
   const users = getUsers();
   const exists = users.find((u) => u.id === session.id);
-  return exists || DEFAULT_USERS[0];
+  if (exists && exists.role === 'admin') {
+    return exists;
+  }
+  return null;
 }
 
 export function setCurrentSession(user: AppUser | null): void {
@@ -1073,5 +1076,5 @@ export function resetToDefaults(): void {
   setStoredItem(STORAGE_KEYS.RECEIPTS, DEFAULT_RECEIPTS);
   setStoredItem(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
   setStoredItem(STORAGE_KEYS.USERS, DEFAULT_USERS);
-  setCurrentSession(DEFAULT_USERS[0]);
+  setCurrentSession(null);
 }

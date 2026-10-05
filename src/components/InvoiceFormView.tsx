@@ -87,6 +87,7 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
   const [billingAddress, setBillingAddress] = useState(initialInvoice?.billingAddress || '');
   const [customerState, setCustomerState] = useState(initialInvoice?.customerState || 'Maharashtra');
   const [customerStateCode, setCustomerStateCode] = useState(initialInvoice?.customerStateCode || '27');
+  const isIntraState = customerStateCode === company.stateCode;
   const [customerGstin, setCustomerGstin] = useState(initialInvoice?.customerGstin || '');
   const [customerMobile, setCustomerMobile] = useState(initialInvoice?.customerMobile || '');
   const [customerEmail, setCustomerEmail] = useState(initialInvoice?.customerEmail || '');
@@ -105,26 +106,47 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
   const [shipToGstin, setShipToGstin] = useState(initialInvoice?.shipToGstin || '');
   const [shipToMobile, setShipToMobile] = useState(initialInvoice?.shipToMobile || '');
 
-  // Items - Start with a clean row, no forced compulsory "Base Frame" or 779 quantity
+  // Find BASE FRAME product (compulsory starting item as requested)
+  const baseFrameProduct =
+    products.find((p) => p.name.toUpperCase().includes('BASE FRAME')) ||
+    products.find((p) => p.id === 'prod-ms-frame-1') ||
+    products[0];
+
+  const defaultBaseName = baseFrameProduct?.name || 'BASE FRAME FOR POWDER COATING RAL 7035';
+  const defaultBaseHsn = baseFrameProduct?.hsn || '998898';
+  const defaultBaseUnit = baseFrameProduct?.defaultUnit || 'KGS';
+  const defaultBaseRate = baseFrameProduct?.defaultRate || 24;
+
+  const initialTaxCalc = calculateItemTaxes(
+    1,
+    defaultBaseRate,
+    baseFrameProduct?.gstRate || 18,
+    company.stateCode,
+    customerStateCode,
+    undefined,
+    isGstApplicable
+  );
+
+  // Items - BASE FRAME is compulsory at starting by default, and all fields are 100% editable
   const [items, setItems] = useState<InvoiceItem[]>(
     initialInvoice?.items || [
       {
         id: `item-${Date.now()}`,
-        productId: '',
-        description: '',
-        hsn: '998898',
+        productId: baseFrameProduct?.id || 'prod-ms-frame-1',
+        description: defaultBaseName,
+        hsn: defaultBaseHsn,
         quantity: 1,
-        unit: 'NOS',
-        rate: 0,
-        taxableAmount: 0,
-        cgstRate: 9,
-        cgstAmount: 0,
-        sgstRate: 9,
-        sgstAmount: 0,
-        igstRate: 0,
-        igstAmount: 0,
-        totalAmount: 0,
-        isTaxable: true,
+        unit: defaultBaseUnit,
+        rate: defaultBaseRate,
+        taxableAmount: initialTaxCalc.taxableAmount,
+        cgstRate: isGstApplicable && isIntraState ? 9 : 0,
+        cgstAmount: isGstApplicable && isIntraState ? initialTaxCalc.cgstAmount : 0,
+        sgstRate: isGstApplicable && isIntraState ? 9 : 0,
+        sgstAmount: isGstApplicable && isIntraState ? initialTaxCalc.sgstAmount : 0,
+        igstRate: isGstApplicable && !isIntraState ? 18 : 0,
+        igstAmount: isGstApplicable && !isIntraState ? initialTaxCalc.igstAmount : 0,
+        totalAmount: isGstApplicable ? initialTaxCalc.totalAmount : initialTaxCalc.taxableAmount,
+        isTaxable: isGstApplicable,
       },
     ]
   );
@@ -412,24 +434,34 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
     setItems(updated);
   };
 
-  // Add Item - Create clean editable item
+  // Add Item - Create item with BASE FRAME defaults, 100% editable
   const handleAddItem = () => {
+    const calc = calculateItemTaxes(
+      1,
+      defaultBaseRate,
+      baseFrameProduct?.gstRate || 18,
+      company.stateCode,
+      customerStateCode,
+      undefined,
+      isGstApplicable
+    );
+
     const newItem: InvoiceItem = {
       id: `item-${Date.now()}-${Math.random()}`,
-      productId: '',
-      description: '',
-      hsn: '998898',
+      productId: baseFrameProduct?.id || 'prod-ms-frame-1',
+      description: defaultBaseName,
+      hsn: defaultBaseHsn,
       quantity: 1,
-      unit: 'NOS',
-      rate: 0,
-      taxableAmount: 0,
+      unit: defaultBaseUnit,
+      rate: defaultBaseRate,
+      taxableAmount: calc.taxableAmount,
       cgstRate: isGstApplicable && isIntraState ? 9 : 0,
-      cgstAmount: 0,
+      cgstAmount: isGstApplicable && isIntraState ? calc.cgstAmount : 0,
       sgstRate: isGstApplicable && isIntraState ? 9 : 0,
-      sgstAmount: 0,
+      sgstAmount: isGstApplicable && isIntraState ? calc.sgstAmount : 0,
       igstRate: isGstApplicable && !isIntraState ? 18 : 0,
-      igstAmount: 0,
-      totalAmount: 0,
+      igstAmount: isGstApplicable && !isIntraState ? calc.igstAmount : 0,
+      totalAmount: isGstApplicable ? calc.totalAmount : calc.taxableAmount,
       isTaxable: isGstApplicable,
     };
 
@@ -580,8 +612,6 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
 
     onSave(invoiceToSave, andView);
   };
-
-  const isIntraState = customerStateCode === company.stateCode;
 
   return (
     <div className="space-y-6 pb-12">

@@ -31,8 +31,8 @@ export function generateInvoicePdf(
   const pageBottom = 287; // 10mm bottom margin
 
   // Outer Border
-  doc.setDrawColor(15, 23, 42);
-  doc.setLineWidth(0.4);
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.45);
   doc.rect(startX, startY, width, pageBottom - startY);
 
   // ==========================================================

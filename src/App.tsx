@@ -65,6 +65,7 @@ import { ProductMasterView } from './components/ProductMasterView';
 import { ReportsView } from './components/ReportsView';
 import { SettingsView } from './components/SettingsView';
 import { LoginModal } from './components/LoginModal';
+import { LoginScreen } from './components/LoginScreen';
 import { SyncModal } from './components/SyncModal';
 
 function AppContent() {
@@ -186,6 +187,16 @@ function AppContent() {
       'लॉगिन यशस्वी!',
       `${user.displayName || user.username} म्हणून लॉगिन झाले (${user.role.toUpperCase()})`,
       'success'
+    );
+  };
+
+  const handleLogout = () => {
+    setCurrentSession(null);
+    setCurrentUser(null);
+    showToast(
+      'सुरक्षित लॉगआउट!',
+      'सिस्टम लॉक झाली आहे. पुन्हा वापरण्यासाठी युझरनेम व पासवर्ड टाकणे आवश्यक आहे.',
+      'info'
     );
   };
 
@@ -333,6 +344,11 @@ function AppContent() {
     setActiveTab('dashboard');
   };
 
+  // Compulsory Security Gate: Web cannot be accessed without username and password login
+  if (!currentUser) {
+    return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col lg:flex-row font-sans text-slate-900">
       {/* Sidebar & Mobile Navigation */}
@@ -351,6 +367,7 @@ function AppContent() {
         currentUser={currentUser}
         onOpenLogin={() => setIsLoginOpen(true)}
         onOpenSync={() => setIsSyncOpen(true)}
+        onLogout={handleLogout}
       />
 
       {/* Main Content Area */}
