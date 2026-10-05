@@ -253,8 +253,8 @@ export const DEFAULT_CUSTOMERS: Customer[] = [
 export const DEFAULT_PRODUCTS: Product[] = [
   {
     id: 'prod-ms-frame-1',
-    name: 'MS FRAME FOR POWDER COATING RAL 7035',
-    description: 'Mild Steel Frame with Powder Coating RAL 7035 Light Grey finish',
+    name: 'BASE FRAME / MS FRAME FOR POWDER COATING RAL 7035',
+    description: 'Base Frame / Mild Steel Frame with Powder Coating RAL 7035 Light Grey finish',
     hsn: '998898',
     defaultUnit: 'KGS',
     defaultRate: 24.0,

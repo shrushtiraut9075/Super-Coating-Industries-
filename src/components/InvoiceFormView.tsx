@@ -105,25 +105,26 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
   const [shipToGstin, setShipToGstin] = useState(initialInvoice?.shipToGstin || '');
   const [shipToMobile, setShipToMobile] = useState(initialInvoice?.shipToMobile || '');
 
-  // Items
+  // Items - Start with a clean row, no forced compulsory "Base Frame" or 779 quantity
   const [items, setItems] = useState<InvoiceItem[]>(
     initialInvoice?.items || [
       {
         id: `item-${Date.now()}`,
-        productId: products[0]?.id || '',
-        description: products[0]?.name || 'MS FRAME FOR POWDER COATING RAL 7035',
-        hsn: products[0]?.hsn || '998898',
-        quantity: 779,
-        unit: products[0]?.defaultUnit || 'KGS',
-        rate: products[0]?.defaultRate || 24,
-        taxableAmount: 18696,
+        productId: '',
+        description: '',
+        hsn: '998898',
+        quantity: 1,
+        unit: 'NOS',
+        rate: 0,
+        taxableAmount: 0,
         cgstRate: 9,
-        cgstAmount: 1682.64,
+        cgstAmount: 0,
         sgstRate: 9,
-        sgstAmount: 1682.64,
+        sgstAmount: 0,
         igstRate: 0,
         igstAmount: 0,
-        totalAmount: 22061.28,
+        totalAmount: 0,
+        isTaxable: true,
       },
     ]
   );
@@ -411,35 +412,25 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
     setItems(updated);
   };
 
-  // Add Item
+  // Add Item - Create clean editable item
   const handleAddItem = () => {
-    const defaultProd = products[0];
-    const calc = calculateItemTaxes(
-      1,
-      defaultProd?.defaultRate || 0,
-      defaultProd?.gstRate || 18,
-      company.stateCode,
-      customerStateCode,
-      undefined,
-      isGstApplicable
-    );
-
     const newItem: InvoiceItem = {
       id: `item-${Date.now()}-${Math.random()}`,
-      productId: defaultProd?.id || '',
-      description: defaultProd?.name || 'Powder Coating Job Work',
-      hsn: defaultProd?.hsn || '998898',
+      productId: '',
+      description: '',
+      hsn: '998898',
       quantity: 1,
-      unit: defaultProd?.defaultUnit || 'KGS',
-      rate: defaultProd?.defaultRate || 0,
-      taxableAmount: calc.taxableAmount,
-      cgstRate: isGstApplicable ? calc.cgstRate : 0,
-      cgstAmount: isGstApplicable ? calc.cgstAmount : 0,
-      sgstRate: isGstApplicable ? calc.sgstRate : 0,
-      sgstAmount: isGstApplicable ? calc.sgstAmount : 0,
-      igstRate: isGstApplicable ? calc.igstRate : 0,
-      igstAmount: isGstApplicable ? calc.igstAmount : 0,
-      totalAmount: isGstApplicable ? calc.totalAmount : calc.taxableAmount,
+      unit: 'NOS',
+      rate: 0,
+      taxableAmount: 0,
+      cgstRate: isGstApplicable && isIntraState ? 9 : 0,
+      cgstAmount: 0,
+      sgstRate: isGstApplicable && isIntraState ? 9 : 0,
+      sgstAmount: 0,
+      igstRate: isGstApplicable && !isIntraState ? 18 : 0,
+      igstAmount: 0,
+      totalAmount: 0,
+      isTaxable: isGstApplicable,
     };
 
     setItems([...items, newItem]);
@@ -1121,17 +1112,17 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left border border-slate-200 rounded-lg">
+            <table className="min-w-[1180px] w-full text-xs text-left border border-slate-200 rounded-lg">
               <thead className="bg-slate-100 text-slate-700 font-bold uppercase text-[10px]">
                 <tr>
                   <th className="p-2.5 w-10 text-center">#</th>
-                  <th className="p-2.5 min-w-[200px]">Description / Product</th>
+                  <th className="p-2.5 min-w-[220px]">Description / Product</th>
                   <th className="p-2.5 w-24 text-center">HSN/SAC</th>
                   <th className="p-2.5 w-28 sm:w-32 text-center text-xs">Qty (नग/प्रमाण)</th>
-                  <th className="p-2.5 w-20 text-center">Unit</th>
-                  <th className="p-2.5 w-24 text-right">Rate (₹)</th>
-                  <th className="p-2.5 w-32 text-right">
-                    <div>Taxable (₹)</div>
+                  <th className="p-2.5 min-w-[95px] w-28 text-center text-xs">Unit (एकक)</th>
+                  <th className="p-2.5 min-w-[130px] w-36 text-right text-xs">Rate (दर ₹)</th>
+                  <th className="p-2.5 min-w-[140px] w-40 text-right text-xs">
+                    <div>Taxable (करपात्र ₹)</div>
                     <div className="text-[8.5px] font-normal text-slate-600">GST: YES / NO</div>
                   </th>
 
@@ -1168,28 +1159,40 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
                     <td className="p-2.5 text-center font-bold text-slate-500">{index + 1}</td>
                     
                     {/* Description & Product Picker */}
-                    <td className="p-2.5 space-y-1">
+                    <td className="p-2.5 space-y-1.5 min-w-[220px]">
                       {products.length > 0 && (
-                        <select
-                          value={item.productId || ''}
-                          onChange={(e) => handleItemChange(index, 'productId', e.target.value)}
-                          className="w-full px-2 py-1 text-xs border border-slate-200 rounded bg-slate-50 text-slate-700 mb-1"
-                        >
-                          <option value="">-- Quick pick from Product Master --</option>
-                          {products.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.name} (HSN: {p.hsn}, ₹{p.defaultRate}/{p.defaultUnit})
-                            </option>
-                          ))}
-                        </select>
+                        <div className="flex items-center gap-1">
+                          <select
+                            value={item.productId || ''}
+                            onChange={(e) => handleItemChange(index, 'productId', e.target.value)}
+                            className="w-full px-2 py-1.5 text-xs border border-slate-300 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium transition-colors focus:ring-1 focus:ring-blue-500"
+                          >
+                            <option value="">-- Quick select product (Optional) / खाली टाईप करा --</option>
+                            {products.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.name}
+                              </option>
+                            ))}
+                          </select>
+                          {item.productId && (
+                            <button
+                              type="button"
+                              onClick={() => handleItemChange(index, 'productId', '')}
+                              className="px-2 py-1 text-[11px] font-bold text-slate-400 hover:text-rose-600 rounded bg-slate-100 hover:bg-rose-50 border border-slate-200"
+                              title="Clear product selection and keep custom text"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
                       )}
                       <input
                         type="text"
-                        placeholder="Description of goods or powder coating work"
+                        placeholder="वस्तूचे किंवा कामाचे नाव (Type Description or edit product)..."
                         value={item.description}
                         onChange={(e) => handleItemChange(index, 'description', e.target.value)}
                         required
-                        className="w-full px-2.5 py-1.5 border border-slate-300 rounded font-medium text-xs focus:ring-1 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border-2 border-slate-300 focus:border-blue-500 rounded-lg font-bold text-xs text-slate-900 bg-white shadow-xs"
                       />
                     </td>
 
@@ -1223,7 +1226,7 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
                       <select
                         value={item.unit}
                         onChange={(e) => handleItemChange(index, 'unit', e.target.value)}
-                        className="w-full px-1.5 py-1.5 border border-slate-300 rounded text-center text-xs"
+                        className="w-full min-w-[85px] px-2.5 py-2.5 border-2 border-slate-300 focus:border-blue-500 rounded-lg text-center font-bold text-xs bg-white shadow-xs"
                       >
                         {COMMON_UNITS.map((u) => (
                           <option key={u} value={u}>
@@ -1242,13 +1245,14 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
                         value={item.rate}
                         onChange={(e) => handleItemChange(index, 'rate', e.target.value)}
                         required
-                        className="w-full px-2 py-1.5 border border-slate-300 rounded font-mono text-right font-semibold text-xs"
+                        placeholder="0.00"
+                        className="w-full min-w-[115px] px-3 py-2.5 border-2 border-emerald-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 rounded-lg font-mono text-right font-black text-sm sm:text-base text-slate-900 bg-white shadow-xs"
                       />
                     </td>
 
                     {/* Taxable Amount + Option for Customer GST YES / NO */}
-                    <td className="p-2.5 text-right font-mono space-y-1">
-                      <div className="font-bold text-slate-900 text-xs">
+                    <td className="p-2.5 text-right font-mono space-y-1 min-w-[140px]">
+                      <div className="font-black text-slate-900 text-sm whitespace-nowrap">
                         ₹{formatIndianCurrency(item.taxableAmount, false)}
                       </div>
                       <div className="flex items-center justify-end gap-1">
@@ -1411,8 +1415,8 @@ export const InvoiceFormView: React.FC<InvoiceFormViewProps> = ({
                     )}
 
                     {/* Line Total */}
-                    <td className="p-2.5 text-right font-mono font-bold text-slate-950">
-                      {formatIndianCurrency(item.totalAmount, false)}
+                    <td className="p-2.5 text-right font-mono font-black text-slate-950 text-sm whitespace-nowrap min-w-[130px]">
+                      ₹{formatIndianCurrency(item.totalAmount, false)}
                     </td>
 
                     {/* Remove Action */}
